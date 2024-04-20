@@ -2,10 +2,10 @@ import {Status} from '@/enum/status';
 import {ResponseError} from '@/lib/http/error';
 import {MiddlewareContext} from '@/lib/http/interface';
 import {jwt} from '@/lib/jwt';
-import {LdapJwtPayload} from '@/lib/ldap/interface';
+import {JwtPayload} from '@/lib/jwt/interface';
 
 interface Auth {
-  user: LdapJwtPayload;
+  user: JwtPayload;
 }
 
 export async function verifyJWT(context: MiddlewareContext<Auth>) {
@@ -18,7 +18,7 @@ export async function verifyJWT(context: MiddlewareContext<Auth>) {
   }
 
   try {
-    const payload = jwt.verify<LdapJwtPayload>(token);
+    const payload = jwt.verify(token);
 
     context.user = payload;
 

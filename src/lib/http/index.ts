@@ -47,6 +47,7 @@ export function createRoute<Extra, Body, Params, Query>({
       context.response = createResponse(resp, status);
       context.headers = req.headers;
       context.next = next;
+      context.logger = new Error();
 
       if (schemas.body) {
         context.body = schemas.body.parse(req.body);

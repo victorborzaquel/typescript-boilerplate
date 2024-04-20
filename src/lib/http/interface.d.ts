@@ -18,6 +18,7 @@ export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
   query: Query;
   headers: IncomingHttpHeaders;
   response: SendResponse;
+  logger: unknown;
   next: NextFunction;
 } & Extra;
 
