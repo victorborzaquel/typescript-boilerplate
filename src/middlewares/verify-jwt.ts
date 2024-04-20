@@ -12,7 +12,7 @@ export async function verifyJWT(context: MiddlewareContext<Auth>) {
   const token = context.headers.authorization?.split(' ')?.[1];
   if (!token) {
     throw new ResponseError({
-      message: 'Not have token',
+      message: 'Authorization token is missing',
       status: Status.UNAUTHORIZED,
     });
   }
@@ -25,7 +25,7 @@ export async function verifyJWT(context: MiddlewareContext<Auth>) {
     return context.next();
   } catch (error) {
     throw new ResponseError({
-      message: 'Invalid token',
+      message: 'Authorization token is invalid',
       status: Status.UNAUTHORIZED,
     });
   }
