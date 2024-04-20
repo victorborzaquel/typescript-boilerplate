@@ -2,7 +2,7 @@ import {Status} from '@/enum/status';
 import {env} from '@/lib/env';
 import * as LdapAuth from 'ldapauth-fork';
 import {ResponseError} from '../http/error';
-import {UserLdap} from './interface';
+import {LdapUser} from './interface';
 
 function createAuth() {
   if (env.APP_AUTH === 'ldap') {
@@ -28,9 +28,9 @@ function reconnect() {
 }
 
 export async function ldap(username: string, password: string) {
-  return new Promise<UserLdap>((resolve, reject) => {
+  return new Promise<LdapUser>((resolve, reject) => {
     if (auth) {
-      auth.authenticate(username, password, (err, user: UserLdap) => {
+      auth.authenticate(username, password, (err, user: LdapUser) => {
         if (err) {
           const isString = typeof err === 'string';
           if (

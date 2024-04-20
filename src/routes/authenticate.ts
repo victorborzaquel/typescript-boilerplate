@@ -9,15 +9,15 @@ export const authenticate = createRoute({
   status: Status.CREATED,
   schemas: {body: z.object({username: z.string(), password: z.string()})},
   handler: async ({body, response}) => {
-    const userLdap = await ldap(body.username, body.password);
+    const user = await ldap(body.username, body.password);
 
     const token = jwt.sign({
-      sub: userLdap.sAMAccountName,
-      login: userLdap.userPrincipalName,
-      fullName: userLdap.name || null,
-      givenName: userLdap.givenName || null,
-      description: userLdap.description || null,
-      roles: extractDnRoles(userLdap.dn),
+      sub: user.sAMAccountName,
+      login: user.userPrincipalName,
+      fullName: user.name || null,
+      givenName: user.givenName || null,
+      description: user.description || null,
+      roles: extractDnRoles(user.dn),
     });
 
     return response(token);

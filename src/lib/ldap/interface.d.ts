@@ -1,4 +1,4 @@
-export interface UserLdap {
+export interface LdapUser {
   sAMAccountName: string;
   userPrincipalName: string;
   name: string;
