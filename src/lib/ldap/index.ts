@@ -27,6 +27,9 @@ function reconnect() {
   auth = createAuth();
 }
 
+/**
+ * Authenticate user with ldap
+ */
 export async function ldap(username: string, password: string) {
   return new Promise<LdapUser>((resolve, reject) => {
     if (auth) {

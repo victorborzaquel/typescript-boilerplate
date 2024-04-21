@@ -1,8 +1,33 @@
 import {Status} from '@/enum/status';
 import {NextFunction, Request, Response} from 'express';
+import {createLogger, format, transports} from 'winston';
 import {z} from 'zod';
+import {env} from '../env';
 import {ResponseError} from './error';
 import {RouteContext, RouteOptions, SendResponse} from './interface';
+
+const logger = createLogger({
+  format: format.combine(
+    format.timestamp({format: 'DD/MM/YYYY HH:mm:ss'}),
+    format.errors({stack: true}),
+    format.splat(),
+    format.json()
+  ),
+  transports: [
+    new transports.File({
+      filename: 'logs/combined.log',
+      level: 'info',
+    }),
+    new transports.File({
+      filename: 'logs/error.log',
+      level: 'error',
+    }),
+  ],
+});
+
+if (env.isDevelopment) {
+  logger.add(new transports.Console());
+}
 
 function createResponse(
   res: Response,
@@ -34,6 +59,9 @@ function handleError(sendResponse: SendResponse, error: Error) {
   );
 }
 
+/**
+ * Create a route handler with middlewares and schemas validation
+ */
 export function createRoute<Extra, Body, Params, Query>({
   status = Status.OK,
   handler,
@@ -42,12 +70,13 @@ export function createRoute<Extra, Body, Params, Query>({
 }: RouteOptions<Body, Params, Query, Extra>) {
   return async (req: Request, resp: Response, next: NextFunction) => {
     try {
+      logger.info(`Request: ${req.method} ${req.url}`);
       const context = {} as RouteContext<Body, Params, Query, Extra>;
 
       context.response = createResponse(resp, status);
       context.headers = req.headers;
       context.next = next;
-      context.logger = new Error();
+      context.logger = logger;
 
       if (schemas.body) {
         context.body = schemas.body.parse(req.body);
@@ -64,8 +93,11 @@ export function createRoute<Extra, Body, Params, Query>({
       }
 
       return await handler(context);
-    } catch (error: unknown) {
+    } catch (error) {
+      logger.error(error);
       return handleError(createResponse(resp), error as Error);
+    } finally {
+      logger.info(`Response: ${req.method} ${req.url} ${resp.statusCode}`);
     }
   };
 }

@@ -2,13 +2,18 @@ import {Status} from '@/enum/status';
 import {ResponseError} from '@/lib/http/error';
 import {MiddlewareContext} from '@/lib/http/interface';
 import {jwt} from '@/lib/jwt';
-import {JwtPayload} from '@/lib/jwt/interface';
+import {PGMJwtPayload} from '@/lib/jwt/interface';
 
 interface Auth {
-  user: JwtPayload;
+  user: PGMJwtPayload;
 }
 
-export async function verifyJWT(context: MiddlewareContext<Auth>) {
+/**
+ * Middleware to verify JWT token from Authorization header and set user in context
+ */
+export async function verifyJWT(
+  context: MiddlewareContext<Auth>
+): Promise<void> {
   const token = context.headers.authorization?.split(' ')?.[1];
   if (!token) {
     throw new ResponseError({

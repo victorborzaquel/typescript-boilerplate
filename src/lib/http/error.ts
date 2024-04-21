@@ -1,3 +1,6 @@
+/**
+ * Error thrown when a response has a status code that is not in the 200 range.
+ */
 export class ResponseError extends Error {
   status: number;
   data?: unknown;

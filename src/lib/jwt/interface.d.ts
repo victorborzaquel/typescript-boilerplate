@@ -1,4 +1,6 @@
-export interface JwtPayload {
+import {JwtPayload} from 'jsonwebtoken';
+
+export interface PGMJwtPayload extends JwtPayload {
   sub: string;
   login: string | null;
   roles: string[];

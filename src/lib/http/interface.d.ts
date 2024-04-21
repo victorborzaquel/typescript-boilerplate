@@ -1,6 +1,7 @@
 import {Status} from '@/enum/status';
 import {NextFunction} from 'express';
 import {IncomingHttpHeaders} from 'node:http';
+import {Logger} from 'winston';
 import {z} from 'zod';
 
 export type SendResponse = (data: unknown, status?: number) => void;
@@ -18,7 +19,7 @@ export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
   query: Query;
   headers: IncomingHttpHeaders;
   response: SendResponse;
-  logger: unknown;
+  logger: Logger;
   next: NextFunction;
 } & Extra;
 

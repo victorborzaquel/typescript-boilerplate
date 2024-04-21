@@ -1,16 +1,32 @@
 import jsonwebtoken from 'jsonwebtoken';
 import moment from 'moment';
 import {env} from '../env';
-import {JwtPayload} from './interface';
+import {PGMJwtPayload} from './interface';
 
+/**
+ * JWT helper
+ */
 export const jwt = {
-  sign(payload: JwtPayload) {
+  /**
+   * Generate JWT token
+   */
+  sign(payload: PGMJwtPayload): string {
     return jsonwebtoken.sign(payload, env.JWT_SECRET, {
       issuer: env.JWT_ISSUER,
       expiresIn: parseInt(moment().add(2, 'days').format('X')),
     });
   },
-  verify(token: string) {
-    return jsonwebtoken.verify(token, env.JWT_SECRET) as JwtPayload;
+  /**
+   * Validate JWT token
+   * @throws Error if token is invalid or expired
+   */
+  verify(token: string): PGMJwtPayload {
+    return jsonwebtoken.verify(token, env.JWT_SECRET) as PGMJwtPayload;
+  },
+  /**
+   * Get proprieties from JWT token
+   */
+  decode(token: string): PGMJwtPayload {
+    return jsonwebtoken.decode(token) as PGMJwtPayload;
   },
 };

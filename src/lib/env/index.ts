@@ -30,6 +30,9 @@ const authSchema = z.discriminatedUnion('APP_AUTH', [ldapSchema, localSchema]);
 
 const parse = baseSchema.and(authSchema).parse(process.env);
 
+/**
+ * Environment variables
+ */
 export const env = {
   ...parse,
   isDevelopment: parse.APP_PROFILE === 'development',

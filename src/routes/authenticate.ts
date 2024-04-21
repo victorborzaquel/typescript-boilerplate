@@ -1,8 +1,8 @@
 import {Status} from '@/enum/status';
+import {extractDnRoles} from '@/helpers/ldap';
 import {createRoute} from '@/lib/http';
 import {jwt} from '@/lib/jwt';
 import {ldap} from '@/lib/ldap';
-import {extractDnRoles} from '@/utils/ldap';
 import {z} from 'zod';
 
 export const authenticate = createRoute({
