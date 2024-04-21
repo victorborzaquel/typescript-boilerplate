@@ -5,7 +5,7 @@ import {jwt} from '@/lib/jwt';
 import {ldap} from '@/lib/ldap';
 import {z} from 'zod';
 
-export const authenticate = createRoute({
+export const authenticateFromLdap = createRoute({
   status: Status.CREATED,
   schemas: {body: z.object({username: z.string(), password: z.string()})},
   handler: async ({body, response}) => {
@@ -14,9 +14,9 @@ export const authenticate = createRoute({
     const token = jwt.sign({
       sub: user.sAMAccountName,
       login: user.userPrincipalName,
-      fullName: user.name || null,
-      givenName: user.givenName || null,
-      description: user.description || null,
+      fullName: user.name ?? null,
+      givenName: user.givenName ?? null,
+      description: user.description ?? null,
       roles: extractDnRoles(user.dn),
     });
 

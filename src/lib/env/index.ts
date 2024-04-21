@@ -1,15 +1,11 @@
 import {z} from 'zod';
 
-const baseSchema = z.object({
+const schema = z.object({
   APP_PROFILE: z.enum(['development', 'production']),
   APP_PORT: z.string().transform(value => parseInt(value, 10)),
+  API_KEY: z.string(),
   JWT_SECRET: z.string(),
   JWT_ISSUER: z.string(),
-  APP_AUTH: z.enum(['ldap', 'local']),
-});
-
-const ldapSchema = z.object({
-  APP_AUTH: z.literal('ldap'),
   LDAP_URL: z.string(),
   LDAP_BIND_DN: z.string(),
   LDAP_BIND_CREDENTIALS: z.string(),
@@ -22,13 +18,7 @@ const ldapSchema = z.object({
     .transform(value => value === 'true'),
 });
 
-const localSchema = z.object({
-  APP_AUTH: z.literal('local'),
-});
-
-const authSchema = z.discriminatedUnion('APP_AUTH', [ldapSchema, localSchema]);
-
-const parse = baseSchema.and(authSchema).parse(process.env);
+const parse = schema.parse(process.env);
 
 /**
  * Environment variables
