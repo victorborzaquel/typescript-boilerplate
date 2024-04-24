@@ -1,6 +1,6 @@
 import {Router} from 'express';
-import {authenticateFromApiKey} from './authenticate-from-api-key';
-import {authenticateFromLdap} from './authenticate-from-ldap';
+import {authenticateFromApiKey} from './from-api-key';
+import {authenticateFromLdap} from './from-ldap';
 
 const authenticate = Router();
 

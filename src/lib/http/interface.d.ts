@@ -6,12 +6,12 @@ import {z} from 'zod';
 
 export type SendResponse = (data: unknown, status?: number) => void;
 
-export type MiddlewareContext<Extra> = RouteContext<
-  unknown,
-  unknown,
-  unknown,
-  Extra
->;
+export type MiddlewareContext<
+  Extra,
+  Body = unknown,
+  Params = unknown,
+  Query = unknown,
+> = RouteContext<Body, Params, Query, Extra>;
 
 export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
   body: Body;
