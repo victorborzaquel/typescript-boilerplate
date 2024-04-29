@@ -96,11 +96,10 @@ export function createRoute<Extra, Body, Params, Query>({
           }
           return acc;
         },
-        schemas?.body || z.object({})
+        (schemas?.body as any) || z.object({})
       );
-
       // context.body = schemas.body.parse(req.body);
-      context.body = bodyParser.parse(req.body);
+      context.body = bodyParser.parse(req.body) as Body;
       // }
       // if (schemas.params) {
       const paramsParser = middlewares.reduce(
@@ -112,7 +111,7 @@ export function createRoute<Extra, Body, Params, Query>({
         },
         (schemas?.params as any) || z.object({})
       );
-      context.params = paramsParser.parse(req.params);
+      context.params = paramsParser.parse(req.params) as Params;
       // context.params = schemas.params.parse(req.params);
       // }
       // if (schemas.query) {
@@ -125,7 +124,7 @@ export function createRoute<Extra, Body, Params, Query>({
         },
         (schemas?.query as any) || z.object({})
       );
-      context.query = queryParser.parse(req.query);
+      context.query = queryParser.parse(req.query) as Query;
       // context.query = schemas.query.parse(req.query);
       // }
 
