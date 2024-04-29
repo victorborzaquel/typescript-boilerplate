@@ -25,8 +25,8 @@ export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
 
 // export type RouteMiddleware<Context> = (context: Context) => Promise<void>;
 
-export interface RouteMiddleware<Body, Params, Query> {
-  handler: (context: RouteContext<Body, Params, Query, Extra>) => Promise<void>;
+export interface RouteMiddleware<Context, Body, Params, Query> {
+  handler: (context: Context) => Promise<void>;
   schemas?: RouteSchemas<Body, Params, Query>;
 }
 
@@ -40,5 +40,10 @@ export interface RouteOptions<Body, Params, Query, Extra> {
   status?: Status;
   handler: (context: RouteContext<Body, Params, Query, Extra>) => Promise<void>;
   schemas?: RouteSchemas<Body, Params, Query>;
-  middlewares?: RouteMiddleware<Body, Params, Query>[];
+  middlewares?: RouteMiddleware<
+    RouteContext<Body, Params, Query, Extra>,
+    Body,
+    Params,
+    Query
+  >[];
 }
