@@ -19,13 +19,7 @@ export const authenticateFromApiKey = createRoute({
       fullName: z.string().optional(),
     }),
   },
-  handler: async ({body, response, query}) => {
-    if (query.secret !== env.ADMIN_API_KEY) {
-      throw new ResponseError({
-        message: 'Invalid API key',
-        status: Status.UNAUTHORIZED,
-      });
-    }
+  handler: async ({body, response}) => {
     const employeeRepository = db.getRepository(Employee);
 
     const employee = await employeeRepository.findOneBy({
