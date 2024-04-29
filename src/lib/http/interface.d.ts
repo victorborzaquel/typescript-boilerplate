@@ -23,15 +23,22 @@ export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
   next: NextFunction;
 } & Extra;
 
-export type RouteMiddleware<Context> = (context: Context) => Promise<void>;
+// export type RouteMiddleware<Context> = (context: Context) => Promise<void>;
+
+export interface RouteMiddleware<Body, Params, Query, Extra> {
+  handler: (context: RouteContext<Body, Params, Query, Extra>) => Promise<void>;
+  schemas?: RouteSchemas<Body, Params, Query>;
+}
+
+export interface RouteSchemas<Body, Params, Query> {
+  body?: z.ZodSchema<Body>;
+  params?: z.ZodSchema<Params>;
+  query?: z.ZodSchema<Query>;
+}
 
 export interface RouteOptions<Body, Params, Query, Extra> {
   status?: Status;
   handler: (context: RouteContext<Body, Params, Query, Extra>) => Promise<void>;
-  schemas?: {
-    body?: z.ZodSchema<Body>;
-    params?: z.ZodSchema<Params>;
-    query?: z.ZodSchema<Query>;
-  };
-  middlewares?: RouteMiddleware<RouteContext<Body, Params, Query, Extra>>[];
+  schemas?: RouteSchemas<Body, Params, Query>;
+  middlewares?: RouteMiddleware<Body, Params, Query, Extra>[];
 }

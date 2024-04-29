@@ -1,9 +1,10 @@
-import {Employee} from '@/database/entities/employee';
 import {Status} from '@/enum/status';
+import {createMiddleware} from '@/lib/http';
 import {ResponseError} from '@/lib/http/error';
-import {MiddlewareContext} from '@/lib/http/interface';
+import {MiddlewareContext, RouteMiddleware} from '@/lib/http/interface';
 import {jwt} from '@/lib/jwt';
 import {db} from '@/lib/typeorm';
+import {Employee} from '@/lib/typeorm/entities/employee';
 
 interface Auth {
   employee: Employee;
@@ -12,42 +13,42 @@ interface Auth {
 /**
  * Middleware to verify JWT token from Authorization header and set employee in context
  */
-export async function verifyJWT(
-  context: MiddlewareContext<Auth>
-): Promise<void> {
-  const employeeRepository = db.getRepository(Employee);
+export const verifyJWT = createMiddleware({
+  handler: async function verifyJWT(
+    context: MiddlewareContext<Auth>
+  ): Promise<void> {
+    const employeeRepository = db.getRepository(Employee);
 
-  function extractPayload(token?: string) {
-    if (!token) {
+    function extractPayload(token?: string) {
+      if (!token) {
+        throw new ResponseError({
+          message: 'Authorization token is missing',
+          status: Status.UNAUTHORIZED,
+        });
+      }
+      try {
+        const payload = jwt.verify(token);
+        return payload;
+      } catch (error) {
+        throw new ResponseError({
+          message: 'Authorization token is invalid',
+          status: Status.UNAUTHORIZED,
+        });
+      }
+    }
+
+    const token = context.headers.authorization?.split(' ')?.[1];
+    const payload = extractPayload(token);
+
+    const employee = await employeeRepository.findOneBy({number: payload.sub});
+
+    if (!employee) {
       throw new ResponseError({
-        message: 'Authorization token is missing',
-        status: Status.UNAUTHORIZED,
+        message: 'Employee not found',
+        status: Status.NOT_FOUND,
       });
     }
-    try {
-      const payload = jwt.verify(token);
-      return payload;
-    } catch (error) {
-      throw new ResponseError({
-        message: 'Authorization token is invalid',
-        status: Status.UNAUTHORIZED,
-      });
-    }
-  }
 
-  const token = context.headers.authorization?.split(' ')?.[1];
-  const payload = extractPayload(token);
-
-  const employee = await employeeRepository.findOneBy({number: payload.sub});
-
-  if (!employee) {
-    throw new ResponseError({
-      message: 'Employee not found',
-      status: Status.NOT_FOUND,
-    });
-  }
-
-  context.employee = employee;
-
-  return context.next();
-}
+    context.employee = employee;
+  },
+});

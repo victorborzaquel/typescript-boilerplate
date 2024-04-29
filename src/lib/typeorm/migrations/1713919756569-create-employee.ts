@@ -29,5 +29,7 @@ export class CreateEmployee1713919756569 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    queryRunner.dropTable('employee');
+  }
 }

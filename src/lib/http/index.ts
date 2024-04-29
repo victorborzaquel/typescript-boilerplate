@@ -4,7 +4,12 @@ import {createLogger, format, transports} from 'winston';
 import {z} from 'zod';
 import {env} from '../env';
 import {ResponseError} from './error';
-import {RouteContext, RouteOptions, SendResponse} from './interface';
+import {
+  RouteContext,
+  RouteMiddleware,
+  RouteOptions,
+  SendResponse,
+} from './interface';
 
 const logger = createLogger({
   format: format.combine(
@@ -59,6 +64,11 @@ function handleError(sendResponse: SendResponse, error: Error) {
   );
 }
 
+export function createMiddleware<Extra, Body, Params, Query>(
+  middleware: RouteMiddleware<Body, Params, Query, Extra>
+) {
+  return middleware;
+}
 /**
  * Create a route handler with middlewares and schemas validation
  */
@@ -78,18 +88,49 @@ export function createRoute<Extra, Body, Params, Query>({
       context.next = next;
       context.logger = logger;
 
-      if (schemas.body) {
-        context.body = schemas.body.parse(req.body);
-      }
-      if (schemas.params) {
-        context.params = schemas.params.parse(req.params);
-      }
-      if (schemas.query) {
-        context.query = schemas.query.parse(req.query);
-      }
+      // if (schemas.body) {
+      const bodyParser = middlewares.reduce(
+        (acc, curr) => {
+          if (curr?.schemas?.body) {
+            return acc.merge(curr.schemas.body);
+          }
+          return acc;
+        },
+        schemas?.body || z.object({})
+      );
+
+      // context.body = schemas.body.parse(req.body);
+      context.body = bodyParser.parse(req.body);
+      // }
+      // if (schemas.params) {
+      const paramsParser = middlewares.reduce(
+        (acc, curr) => {
+          if (curr?.schemas?.params) {
+            return acc.merge(curr.schemas.params);
+          }
+          return acc;
+        },
+        (schemas?.params as any) || z.object({})
+      );
+      context.params = paramsParser.parse(req.params);
+      // context.params = schemas.params.parse(req.params);
+      // }
+      // if (schemas.query) {
+      const queryParser = middlewares.reduce(
+        (acc, curr) => {
+          if (curr?.schemas?.query) {
+            return acc.merge(curr.schemas.query);
+          }
+          return acc;
+        },
+        (schemas?.query as any) || z.object({})
+      );
+      context.query = queryParser.parse(req.query);
+      // context.query = schemas.query.parse(req.query);
+      // }
 
       for await (const middleware of middlewares) {
-        await middleware(context);
+        await middleware.handler(context);
       }
 
       return await handler(context);

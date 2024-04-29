@@ -1,5 +1,5 @@
-import {Employee} from '@/database/entities/employee';
 import {extractDnRoles} from '@/helpers/ldap';
+import {Employee} from '@/lib/typeorm/entities/employee';
 
 export class EmployeePresenter {
   readonly id: string;

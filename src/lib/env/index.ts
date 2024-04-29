@@ -4,7 +4,8 @@ import {z} from 'zod';
 const schema = z.object({
   APP_PROFILE: z.enum(['development', 'production']),
   APP_PORT: validStringNumber(),
-  API_KEY: z.string(),
+  ADMIN_API_KEY: z.string(),
+  USER_API_KEY: z.string(),
   JWT_SECRET: z.string(),
   JWT_ISSUER: z.string(),
   LDAP_URL: z.string(),
