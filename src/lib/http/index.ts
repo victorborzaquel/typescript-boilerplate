@@ -1,39 +1,42 @@
 import {Status} from '@/enum/status';
 import {NextFunction, Request, Response} from 'express';
-import {createLogger, format, transports} from 'winston';
 import {z} from 'zod';
-import {env} from '../env';
+import {Logger} from '../logger';
 import {ResponseError} from './error';
 import {
   RouteContext,
   RouteMiddlewareOptions,
   RouteOptions,
+  RouteSchemas,
   SendResponse,
 } from './interface';
 
-const logger = createLogger({
-  format: format.combine(
-    format.timestamp({format: 'DD/MM/YYYY HH:mm:ss'}),
-    format.errors({stack: true}),
-    format.splat(),
-    format.json()
-  ),
-  transports: [
-    new transports.File({
-      filename: 'logs/combined.log',
-      level: 'info',
-    }),
-    new transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    }),
-  ],
-});
+// const logger = createLogger({
+//   format: format.combine(
+//     format.timestamp({format: 'DD/MM/YYYY HH:mm:ss'}),
+//     format.errors({stack: true}),
+//     format.splat(),
+//     format.json()
+//   ),
+//   transports: [
+//     new transports.File({
+//       filename: 'logs/combined.log',
+//       level: 'info',
+//     }),
+//     new transports.File({
+//       filename: 'logs/error.log',
+//       level: 'error',
+//     }),
+//   ],
+// });
 
-if (env.isDevelopment) {
-  logger.add(new transports.Console());
-}
+// if (env.isDevelopment) {
+//   logger.add(new transports.Console());
+// }
 
+// if (label) {
+//   logger.unshift(format.label({label}));
+// }
 function createResponse(
   res: Response,
   defaultStatus: Status = Status.OK
@@ -64,6 +67,12 @@ function handleError(sendResponse: SendResponse, error: Error) {
   );
 }
 
+export function createSchema<Body, Params, Query, Extra>(
+  schemas: RouteSchemas<Body, Params, Query>
+) {
+  return schemas as RouteSchemas<Body, Params, Query> & Extra;
+}
+
 export function createMiddleware<Extra, Body, Params, Query>({
   handler,
   schemas = {},
@@ -84,20 +93,21 @@ export function createMiddleware<Extra, Body, Params, Query>({
 /**
  * Create a route handler with middlewares and schemas validation
  */
-export function createRoute<Extra, Body, Params, Query>({
+export function createRoute<Extra, Body, Params, Query, Resp>({
   status = Status.OK,
   handler,
   middlewares = [],
   schemas = {},
-}: RouteOptions<Body, Params, Query, Extra>) {
-  return async (req: Request, resp: Response, next: NextFunction) => {
+}: RouteOptions<Body, Params, Query, Extra, Resp>) {
+  return async (req: Request, resp: Response, _next: NextFunction) => {
+    const logger = new Logger(req.path);
     try {
       logger.info(`Request: ${req.method} ${req.url}`);
       const context = {} as RouteContext<Body, Params, Query, Extra>;
 
-      context.response = createResponse(resp, status);
+      // context.response = createResponse(resp, status);
       context.headers = req.headers;
-      context.next = next;
+      // context.next = next;
       context.logger = logger;
 
       if (schemas.body) {
@@ -114,53 +124,10 @@ export function createRoute<Extra, Body, Params, Query>({
         await middleware(context, req);
       }
 
-      // // if (schemas.body) {
-      // const bodyParser = middlewares.reduce(
-      //   (acc, curr) => {
-      //     if (curr?.schemas?.body) {
-      //       return acc.merge(curr.schemas.body);
-      //     }
-      //     return acc;
-      //   },
-      //   (schemas?.body as any) || z.object({})
-      // );
-      // // context.body = schemas.body.parse(req.body);
-      // context.body = bodyParser.parse(req.body) as Body;
-      // // }
-      // // if (schemas.params) {
-      // const paramsParser = middlewares.reduce(
-      //   (acc, curr) => {
-      //     if (curr?.schemas?.params) {
-      //       return acc.merge(curr.schemas.params);
-      //     }
-      //     return acc;
-      //   },
-      //   (schemas?.params as any) || z.object({})
-      // );
-      // context.params = paramsParser.parse(req.params) as Params;
-      // // context.params = schemas.params.parse(req.params);
-      // // }
-      // // if (schemas.query) {
-      // const queryParser = middlewares.reduce(
-      //   (acc, curr) => {
-      //     if (curr?.schemas?.query) {
-      //       return acc.merge(curr.schemas.query);
-      //     }
-      //     return acc;
-      //   },
-      //   (schemas?.query as any) || z.object({})
-      // );
-      // context.query = queryParser.parse(req.query) as Query;
-      // // context.query = schemas.query.parse(req.query);
-      // // }
-
-      // for await (const middleware of middlewares) {
-      //   await middleware.handler(context);
-      // }
-
-      return await handler(context);
+      const response = await handler(context);
+      return createResponse(resp, status)(response);
     } catch (error) {
-      logger.error(error);
+      logger.fromError(error);
       return handleError(createResponse(resp), error as Error);
     } finally {
       logger.info(`Response: ${req.method} ${req.url} ${resp.statusCode}`);

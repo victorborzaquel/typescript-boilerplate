@@ -7,7 +7,7 @@ import {PGMJwtPayload} from './interface';
 /**
  * JWT helper
  */
-class Jwt {
+export class JwtProvider {
   /**
    * Generate JWT token
    */
@@ -42,4 +42,3 @@ class Jwt {
     return jsonwebtoken.decode(token) as PGMJwtPayload;
   }
 }
-export const jwt = new Jwt();

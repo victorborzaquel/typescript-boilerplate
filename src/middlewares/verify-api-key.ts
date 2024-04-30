@@ -16,19 +16,6 @@ interface VerifyApiKey {
 /**
  * Middleware to verify JWT token from Authorization header and set employee in context
  */
-// export function verifyApiKey(role: Role, ...roles: Role[]) {
-//   const appRoles = [role, ...roles];
-//   const keys = appRoles.map(role => env[`${role}_API_KEY`]);
-//   return async (context: MiddlewareContext<VerifyApiKey>): Promise<void> => {
-//     if (!keys.some(key => context.query.secret === key)) {
-//       throw new ResponseError({
-//         message: 'Invalid API key',
-//         status: Status.UNAUTHORIZED,
-//       });
-//     }
-//   };
-// }
-
 export const verifyApiKey = (role: Role, ...roles: Role[]) => {
   const appRoles = [role, ...roles];
   const keys = appRoles.map(role => env[`${role}_API_KEY`]);

@@ -1,8 +1,8 @@
 import {Status} from '@/enum/status';
 import {createMiddleware} from '@/lib/http';
 import {ResponseError} from '@/lib/http/error';
-import {MiddlewareContext, RouteMiddleware} from '@/lib/http/interface';
-import {jwt} from '@/lib/jwt';
+import {MiddlewareContext} from '@/lib/http/interface';
+import {JwtProvider} from '@/lib/jwt';
 import {db} from '@/lib/typeorm';
 import {Employee} from '@/lib/typeorm/entities/employee';
 
@@ -18,8 +18,9 @@ export const verifyJWT = createMiddleware({
     context: MiddlewareContext<Auth>
   ): Promise<void> {
     const employeeRepository = db.getRepository(Employee);
+    const jwt = new JwtProvider();
 
-    function extractPayload(token?: string) {
+    function extractPayload(jwt: JwtProvider, token?: string) {
       if (!token) {
         throw new ResponseError({
           message: 'Authorization token is missing',
@@ -38,7 +39,7 @@ export const verifyJWT = createMiddleware({
     }
 
     const token = context.headers.authorization?.split(' ')?.[1];
-    const payload = extractPayload(token);
+    const payload = extractPayload(jwt, token);
 
     const employee = await employeeRepository.findOneBy({number: payload.sub});
 

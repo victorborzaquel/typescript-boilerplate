@@ -1,8 +1,8 @@
 import {Status} from '@/enum/status';
 import {NextFunction, Request} from 'express';
 import {IncomingHttpHeaders} from 'node:http';
-import {Logger} from 'winston';
 import {z} from 'zod';
+import {Logger} from '../logger';
 
 export type SendResponse = (data: unknown, status?: number) => void;
 
@@ -18,9 +18,9 @@ export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
   params: Params;
   query: Query;
   headers: IncomingHttpHeaders;
-  response: SendResponse;
+  // response: SendResponse;
   logger: Logger;
-  next: NextFunction;
+  // next: NextFunction;
 } & Extra;
 
 // export type RouteMiddleware<Context> = (context: Context) => Promise<void>;
@@ -33,7 +33,7 @@ export interface RouteMiddlewareOptions<Body, Params, Query, Extra> {
 export type RouteMiddleware<Context> = (
   context: Context,
   req: Request
-) => Promise<void>;
+) => Promise<void> | void;
 
 export interface RouteSchemas<Body, Params, Query> {
   body?: z.ZodSchema<Body>;
@@ -41,9 +41,11 @@ export interface RouteSchemas<Body, Params, Query> {
   query?: z.ZodSchema<Query>;
 }
 
-export interface RouteOptions<Body, Params, Query, Extra> {
+export interface RouteOptions<Body, Params, Query, Extra, Resp> {
   status?: Status;
-  handler: (context: RouteContext<Body, Params, Query, Extra>) => Promise<void>;
+  handler: (
+    context: RouteContext<Body, Params, Query, Extra>
+  ) => Promise<Resp> | Resp;
   schemas?: RouteSchemas<Body, Params, Query>;
   middlewares?: RouteMiddleware<RouteContext<Body, Params, Query, Extra>>[];
 }
