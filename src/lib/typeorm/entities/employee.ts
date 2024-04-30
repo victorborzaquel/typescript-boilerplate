@@ -20,18 +20,28 @@ export interface EmployeeProps {
 
 @Entity('employee')
 export class Employee extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid') readonly id!: string;
-  @CreateDateColumn({name: 'created_at'}) readonly createdAt!: Date;
-  @UpdateDateColumn({name: 'updated_at'}) updatedAt!: Date;
-  @Column({unique: true, type: 'varchar'}) readonly number!: string;
+  @PrimaryGeneratedColumn('uuid')
+  readonly id!: string;
+
+  @CreateDateColumn({name: 'created_at'})
+  readonly createdAt!: Date;
+
+  @UpdateDateColumn({name: 'updated_at'})
+  updatedAt!: Date;
+
+  @Column({unique: true, type: 'varchar'})
+  readonly number!: string;
+
   @Column({name: 'dn', type: 'nvarchar'})
   dn!: string;
+
   @Column({
     name: 'full_name',
     nullable: true,
     type: 'nvarchar',
   })
   fullName!: string | null;
+
   @Column({
     name: 'given_name',
     nullable: true,

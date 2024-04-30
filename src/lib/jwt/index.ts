@@ -1,4 +1,3 @@
-import {randomUUID} from 'crypto';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as moment from 'moment';
 import {env} from '../env';
@@ -12,16 +11,12 @@ export class JwtProvider {
    * Generate JWT token
    */
   sign(payload: PGMJwtPayload): string {
-    const {
-      aud,
-      exp = parseInt(moment().add(2, 'days').format('X')),
-      iat = Date.now(),
-      iss = env.JWT_ISSUER,
-      jti = randomUUID(),
-      nbf = Date.now(),
+    const {sub} = payload;
+    const send: jsonwebtoken.JwtPayload & PGMJwtPayload = {
       sub,
-    } = payload;
-    return jsonwebtoken.sign({sub, exp}, env.JWT_SECRET, {
+      exp: parseInt(moment().add(2, 'days').format('X')),
+    };
+    return jsonwebtoken.sign(send, env.JWT_SECRET, {
       issuer: env.JWT_ISSUER,
     });
   }
