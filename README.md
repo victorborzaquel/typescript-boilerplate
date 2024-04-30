@@ -1,5 +1,8 @@
-Entidades para criar:
+Entities:
+- Session
+- Application
+- Account
 
-Session
-Application
-Account
+Routes:
+- Logout
+- Exit

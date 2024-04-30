@@ -1,4 +1,5 @@
 import {Status} from '@/enum/status';
+import {urlDataMasking} from '@/helpers/url';
 import {NextFunction, Request, Response} from 'express';
 import {z} from 'zod';
 import {Logger} from '../logger';
@@ -74,13 +75,9 @@ export function createRoute<Extra, Body, Params, Query, Resp>({
   schemas = {},
 }: RouteOptions<Body, Params, Query, Extra, Resp>) {
   return async (req: Request, resp: Response, _next: NextFunction) => {
-    const regex = /(\?|&)secret=[^&\s]+/g;
-    const subst = '$1secret={secret}';
-    const path = req.url.replace(regex, subst);
-
-    const logger = new Logger(path);
+    const logger = new Logger(urlDataMasking(req.url));
     try {
-      logger.info(`Request: ${req.method} ${path}`);
+      logger.info(`Request: ${req.method}`);
       const context = {} as RouteContext<Body, Params, Query, Extra>;
 
       // context.response = createResponse(resp, status);
@@ -108,7 +105,7 @@ export function createRoute<Extra, Body, Params, Query, Resp>({
       logger.fromError(error);
       return handleError(createResponse(resp), error as Error);
     } finally {
-      logger.info(`Response: ${req.method} ${path} ${resp.statusCode}`);
+      logger.info(`Response: ${req.method} ${resp.statusCode}`);
     }
   };
 }

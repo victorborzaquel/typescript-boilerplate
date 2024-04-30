@@ -23,6 +23,7 @@ export class Logger {
       format: format.combine(
         format.timestamp({format: 'DD/MM/YYYY HH:mm:ss'}),
         format.errors({stack: true}),
+        format.label({label}),
         format.splat(),
         format.json()
       ),
@@ -40,10 +41,6 @@ export class Logger {
 
     if (env.isDevelopment) {
       this.logger.add(new transports.Console());
-    }
-
-    if (label) {
-      this.logger.unshift(format.label({label}));
     }
   }
   error(message: string) {

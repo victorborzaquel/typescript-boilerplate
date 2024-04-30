@@ -25,7 +25,6 @@ export class JwtProvider {
    * @throws Error if token is invalid or expired
    */
   verify(token: string): PGMJwtPayload {
-    console.log(env.JWT_SECRET);
     return jsonwebtoken.verify(token, env.JWT_SECRET, {
       issuer: env.JWT_ISSUER,
     }) as PGMJwtPayload;
