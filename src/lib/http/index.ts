@@ -11,32 +11,6 @@ import {
   SendResponse,
 } from './interface';
 
-// const logger = createLogger({
-//   format: format.combine(
-//     format.timestamp({format: 'DD/MM/YYYY HH:mm:ss'}),
-//     format.errors({stack: true}),
-//     format.splat(),
-//     format.json()
-//   ),
-//   transports: [
-//     new transports.File({
-//       filename: 'logs/combined.log',
-//       level: 'info',
-//     }),
-//     new transports.File({
-//       filename: 'logs/error.log',
-//       level: 'error',
-//     }),
-//   ],
-// });
-
-// if (env.isDevelopment) {
-//   logger.add(new transports.Console());
-// }
-
-// if (label) {
-//   logger.unshift(format.label({label}));
-// }
 function createResponse(
   res: Response,
   defaultStatus: Status = Status.OK
@@ -100,9 +74,13 @@ export function createRoute<Extra, Body, Params, Query, Resp>({
   schemas = {},
 }: RouteOptions<Body, Params, Query, Extra, Resp>) {
   return async (req: Request, resp: Response, _next: NextFunction) => {
-    const logger = new Logger(req.path);
+    const regex = /(\?|&)secret=[^&\s]+/g;
+    const subst = '$1secret={secret}';
+    const path = req.url.replace(regex, subst);
+
+    const logger = new Logger(path);
     try {
-      logger.info(`Request: ${req.method} ${req.url}`);
+      logger.info(`Request: ${req.method} ${path}`);
       const context = {} as RouteContext<Body, Params, Query, Extra>;
 
       // context.response = createResponse(resp, status);
@@ -130,7 +108,7 @@ export function createRoute<Extra, Body, Params, Query, Resp>({
       logger.fromError(error);
       return handleError(createResponse(resp), error as Error);
     } finally {
-      logger.info(`Response: ${req.method} ${req.url} ${resp.statusCode}`);
+      logger.info(`Response: ${req.method} ${path} ${resp.statusCode}`);
     }
   };
 }

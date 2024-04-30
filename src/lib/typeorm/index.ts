@@ -19,7 +19,5 @@ export const db = new DataSource({
     process.env.DB_LOGGING === 'true',
   migrations: [`${__dirname}/migrations/*.{ts,js}`],
   entities: [`${__dirname}/entities/*.{ts,js}`],
-  // subscribers: [],
   extra: {trustServerCertificate: true},
-  // namingStrategy: new CustomNamingStrategy(),
 });

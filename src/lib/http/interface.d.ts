@@ -1,5 +1,5 @@
 import {Status} from '@/enum/status';
-import {NextFunction, Request} from 'express';
+import {Request} from 'express';
 import {IncomingHttpHeaders} from 'node:http';
 import {z} from 'zod';
 import {Logger} from '../logger';

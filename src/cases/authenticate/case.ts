@@ -1,6 +1,6 @@
 import {JwtProvider} from '@/lib/jwt';
 import {Employee} from '@/lib/typeorm/entities/employee';
-import {Repository} from 'typeorm';
+import {EmployeeRepository} from '@/repositories/employee';
 
 interface Dto {
   employeeId: string;
@@ -15,13 +15,11 @@ interface Response {
 
 export class AuthenticateCase {
   constructor(
-    private readonly employeeRepository: Repository<Employee>,
+    private readonly employeeRepository: EmployeeRepository,
     private readonly jwtProvider: JwtProvider
   ) {}
   async execute({dn, employeeId, fullName, givenName}: Dto): Promise<Response> {
-    const employee = await this.employeeRepository.findOneBy({
-      number: employeeId,
-    });
+    const employee = await this.employeeRepository.findByNumber(employeeId);
 
     if (!employee) {
       await this.employeeRepository.save(
