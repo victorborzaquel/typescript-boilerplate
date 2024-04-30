@@ -5,11 +5,8 @@ import {ResponseError} from '@/lib/http/error';
 import {MiddlewareContext} from '@/lib/http/interface';
 import {z} from 'zod';
 
-export enum AppRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-}
 type Role = 'USER' | 'ADMIN';
+
 interface VerifyApiKey {
   query: {secret: string};
 }
@@ -19,7 +16,6 @@ interface VerifyApiKey {
 export const verifyApiKey = (role: Role, ...roles: Role[]) => {
   const appRoles = [role, ...roles];
   const keys = appRoles.map(role => env[`${role}_API_KEY`]);
-
   return createMiddleware({
     schemas: {
       query: z.object({secret: z.string()}),

@@ -17,7 +17,9 @@ export interface EmployeeProps {
   fullName?: string;
   givenName?: string;
 }
-
+/**
+ * PGM employee
+ */
 @Entity('employee')
 export class Employee extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
