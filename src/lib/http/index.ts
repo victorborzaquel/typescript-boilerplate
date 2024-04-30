@@ -6,7 +6,7 @@ import {env} from '../env';
 import {ResponseError} from './error';
 import {
   RouteContext,
-  RouteMiddleware,
+  RouteMiddlewareOptions,
   RouteOptions,
   SendResponse,
 } from './interface';
@@ -64,10 +64,22 @@ function handleError(sendResponse: SendResponse, error: Error) {
   );
 }
 
-export function createMiddleware<Extra, Body, Params, Query>(
-  middleware: RouteMiddleware<Body, Params, Query, Extra>
-) {
-  return middleware;
+export function createMiddleware<Extra, Body, Params, Query>({
+  handler,
+  schemas = {},
+}: RouteMiddlewareOptions<Body, Params, Query, Extra>) {
+  return (context: RouteContext<Body, Params, Query, Extra>, req: Request) => {
+    if (schemas.body) {
+      context.body = {...schemas.body.parse(req.body), ...context.body};
+    }
+    if (schemas.params) {
+      context.params = {...schemas.params.parse(req.params), ...context.params};
+    }
+    if (schemas.query) {
+      context.query = {...schemas.query.parse(req.query), ...context.query};
+    }
+    return handler(context);
+  };
 }
 /**
  * Create a route handler with middlewares and schemas validation
@@ -88,49 +100,63 @@ export function createRoute<Extra, Body, Params, Query>({
       context.next = next;
       context.logger = logger;
 
-      // if (schemas.body) {
-      const bodyParser = middlewares.reduce(
-        (acc, curr) => {
-          if (curr?.schemas?.body) {
-            return acc.merge(curr.schemas.body);
-          }
-          return acc;
-        },
-        (schemas?.body as any) || z.object({})
-      );
-      // context.body = schemas.body.parse(req.body);
-      context.body = bodyParser.parse(req.body) as Body;
-      // }
-      // if (schemas.params) {
-      const paramsParser = middlewares.reduce(
-        (acc, curr) => {
-          if (curr?.schemas?.params) {
-            return acc.merge(curr.schemas.params);
-          }
-          return acc;
-        },
-        (schemas?.params as any) || z.object({})
-      );
-      context.params = paramsParser.parse(req.params) as Params;
-      // context.params = schemas.params.parse(req.params);
-      // }
-      // if (schemas.query) {
-      const queryParser = middlewares.reduce(
-        (acc, curr) => {
-          if (curr?.schemas?.query) {
-            return acc.merge(curr.schemas.query);
-          }
-          return acc;
-        },
-        (schemas?.query as any) || z.object({})
-      );
-      context.query = queryParser.parse(req.query) as Query;
-      // context.query = schemas.query.parse(req.query);
-      // }
+      if (schemas.body) {
+        context.body = schemas.body.parse(req.body);
+      }
+      if (schemas.params) {
+        context.params = schemas.params.parse(req.params);
+      }
+      if (schemas.query) {
+        context.query = schemas.query.parse(req.query);
+      }
 
       for await (const middleware of middlewares) {
-        await middleware.handler(context);
+        await middleware(context, req);
       }
+
+      // // if (schemas.body) {
+      // const bodyParser = middlewares.reduce(
+      //   (acc, curr) => {
+      //     if (curr?.schemas?.body) {
+      //       return acc.merge(curr.schemas.body);
+      //     }
+      //     return acc;
+      //   },
+      //   (schemas?.body as any) || z.object({})
+      // );
+      // // context.body = schemas.body.parse(req.body);
+      // context.body = bodyParser.parse(req.body) as Body;
+      // // }
+      // // if (schemas.params) {
+      // const paramsParser = middlewares.reduce(
+      //   (acc, curr) => {
+      //     if (curr?.schemas?.params) {
+      //       return acc.merge(curr.schemas.params);
+      //     }
+      //     return acc;
+      //   },
+      //   (schemas?.params as any) || z.object({})
+      // );
+      // context.params = paramsParser.parse(req.params) as Params;
+      // // context.params = schemas.params.parse(req.params);
+      // // }
+      // // if (schemas.query) {
+      // const queryParser = middlewares.reduce(
+      //   (acc, curr) => {
+      //     if (curr?.schemas?.query) {
+      //       return acc.merge(curr.schemas.query);
+      //     }
+      //     return acc;
+      //   },
+      //   (schemas?.query as any) || z.object({})
+      // );
+      // context.query = queryParser.parse(req.query) as Query;
+      // // context.query = schemas.query.parse(req.query);
+      // // }
+
+      // for await (const middleware of middlewares) {
+      //   await middleware.handler(context);
+      // }
 
       return await handler(context);
     } catch (error) {

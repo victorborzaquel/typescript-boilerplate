@@ -1,5 +1,5 @@
 import {Status} from '@/enum/status';
-import {NextFunction} from 'express';
+import {NextFunction, Request} from 'express';
 import {IncomingHttpHeaders} from 'node:http';
 import {Logger} from 'winston';
 import {z} from 'zod';
@@ -25,10 +25,15 @@ export type RouteContext<Body, Params, Query, Extra = NonNullable<unknown>> = {
 
 // export type RouteMiddleware<Context> = (context: Context) => Promise<void>;
 
-export interface RouteMiddleware<Context, Body, Params, Query> {
-  handler: (context: Context) => Promise<void>;
+export interface RouteMiddlewareOptions<Body, Params, Query, Extra> {
+  handler: (context: MiddlewareContext<Extra>) => Promise<void>;
   schemas?: RouteSchemas<Body, Params, Query>;
 }
+
+export type RouteMiddleware<Context> = (
+  context: Context,
+  req: Request
+) => Promise<void>;
 
 export interface RouteSchemas<Body, Params, Query> {
   body?: z.ZodSchema<Body>;
@@ -40,10 +45,5 @@ export interface RouteOptions<Body, Params, Query, Extra> {
   status?: Status;
   handler: (context: RouteContext<Body, Params, Query, Extra>) => Promise<void>;
   schemas?: RouteSchemas<Body, Params, Query>;
-  middlewares?: RouteMiddleware<
-    RouteContext<Body, Params, Query, Extra>,
-    Body,
-    Params,
-    Query
-  >[];
+  middlewares?: RouteMiddleware<RouteContext<Body, Params, Query, Extra>>[];
 }
